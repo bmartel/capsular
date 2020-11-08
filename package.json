@@ -1,0 +1,32 @@
+{
+  "name": "pocket",
+  "version": "0.0.1",
+  "description": "An offline first approach to remote data",
+  "module": "dist/index.mjs",
+  "main": "dist/index.cjs",
+  "browser": "dist/index.js",
+  "types": "dist/src/index.d.ts",
+  "license": "MIT",
+  "author": "Brandon Martel",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^16.0.0",
+    "@rollup/plugin-node-resolve": "^10.0.0",
+    "ava": "^3.13.0",
+    "rollup": "^2.33.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.29.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "dependencies": {
+    "idb": "^5.0.7"
+  }
+}
