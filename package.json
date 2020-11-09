@@ -1,6 +1,6 @@
 {
   "name": "capsular",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An offline first approach to remote data",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
@@ -8,7 +8,8 @@
   "types": "dist/src/index.d.ts",
   "license": "MIT",
   "author": "Brandon Martel",
-  "bin": "bin/capsular.js",
+  "binEntry": "bin/index.js",
+  "bin": "capsular.js",
   "publishConfig": {
     "access": "public"
   },
@@ -29,10 +30,12 @@
   "files": [
     "dist",
     "bin",
-    "scripts"
+    "scripts",
+    "capsular.js"
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:scripts": "babel scripts -d bin",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava"
   },
   "devDependencies": {

@@ -31,7 +31,7 @@ const build = (output = {}) => ({
 const scripts = {
   input: "scripts/index.js",
   output: {
-    file: pkg.bin,
+    file: pkg.binEntry,
     format: "cjs",
   },
   plugins: [
@@ -53,7 +53,6 @@ const scripts = {
 };
 
 export default [
-  scripts,
   build({
     format: "umd",
     name: "capsular",

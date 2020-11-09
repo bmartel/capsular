@@ -1,15 +1,12 @@
-#!/usr/bin/env node
-
-import fs from "fs";
-import path from "path";
-import Listr from "listr";
-import execa from "execa";
-import tmp from "tmp";
-import checkNodeVersion from "check-node-version";
-import chalk from "chalk";
+//import fs from "fs";
+//import path from "path";
+//import Listr from "listr";
+//import execa from "execa";
+//import tmp from "tmp";
+//import chalk from "chalk";
 import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import { name, version, engines } from "../package.json";
+import * as generate from "./generate";
+import { version } from "../package.json";
 
 const style = {
   error: chalk.bold.red,
@@ -21,4 +18,4 @@ const style = {
   green: chalk.green,
 };
 
-yargs.command().version(version).help().argv;
+yargs.command(generate).version(version).help().argv;
