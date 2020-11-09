@@ -35,7 +35,9 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "build:scripts": "babel scripts -d bin",
+    "transpile:scripts": "babel scripts -d scriptsbin",
+    "bundle:scripts": "ncc build scriptsbin/index.js -m -o bin",
+    "build:scripts": "yarn transpile:scripts && yarn bundle:scripts",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava"
   },
   "devDependencies": {
@@ -50,6 +52,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@types/sinon": "^9.0.8",
+    "@vercel/ncc": "^0.25.1",
     "ava": "^3.13.0",
     "browser-env": "^3.3.0",
     "chalk": "^4.1.0",
