@@ -1,4 +1,4 @@
-import { IDBPDatabase } from "idb";
+import { IDBPDatabase } from "./indexeddb";
 
 export interface Migration<Schema = any> {
   (db: IDBPDatabase<Schema>, oldVersion: number): void;
