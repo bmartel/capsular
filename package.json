@@ -8,22 +8,41 @@
   "types": "dist/src/index.d.ts",
   "license": "MIT",
   "author": "Brandon Martel",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^16.0.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
+    "@types/sinon": "^9.0.8",
     "ava": "^3.13.0",
+    "browser-env": "^3.3.0",
     "rollup": "^2.33.1",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.29.0",
+    "sinon": "^9.2.1",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.5"
   },
   "ava": {
-    "extensions": [
-      "ts"
+    "verbose": true,
+    "extensions": {
+      "ts": "module"
+    },
+    "nonSemVerExperiments": {
+      "configurableModuleFormat": true
+    },
+    "nodeArguments": [
+      "--experimental-modules",
+      "--loader=ts-node/esm",
+      "--experimental-specifier-resolution=node"
+    ],
+    "files": [
+      "src/**/*.spec.ts"
     ],
     "require": [
-      "ts-node/register"
+      "./test/setup.js"
     ]
   },
   "dependencies": {
