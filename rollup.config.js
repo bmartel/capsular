@@ -28,7 +28,7 @@ const build = (output = {}) => ({
 export default [
   build({
     format: "umd",
-    name: "pocket",
+    name: "capsular",
     file: pkg.browser,
   }),
   build({
