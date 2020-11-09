@@ -4,20 +4,22 @@ export interface Migration<Schema = any> {
   (db: IDBPDatabase<Schema>, oldVersion: number): void;
 }
 
-const migrations: Record<string, Array<Migration>> = {};
+export const migrations: Record<string, Record<number, Migration>> = {};
 export function useMigrations(
   dbname: string,
-  _migrations: Array<Migration> = []
+  _migrations: Record<number, Migration> = {}
 ) {
   migrations[dbname] = _migrations;
 }
 
 export function migrate(db: IDBPDatabase, oldVersion: number) {
-  const _dbmigrations = migrations[db.name];
-  if (_dbmigrations && _dbmigrations.length) {
-    _dbmigrations.forEach((migration) => {
-      migration(db, oldVersion);
+  const _dbmigrations = Object.entries(migrations[db.name] || {});
+  if (_dbmigrations.length) {
+    _dbmigrations.forEach(([version, migration]) => {
+      const migrationVersion = Number(version);
+      if (oldVersion < migrationVersion) {
+        migration(db, oldVersion);
+      }
     });
   }
 }
-
