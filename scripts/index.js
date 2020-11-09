@@ -3,7 +3,7 @@
 //import Listr from "listr";
 //import execa from "execa";
 //import tmp from "tmp";
-//import chalk from "chalk";
+import chalk from "chalk";
 import yargs from "yargs";
 import * as generate from "./generate";
 import { version } from "../package.json";
