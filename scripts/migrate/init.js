@@ -1,5 +1,5 @@
-import { Filer } from "../utils";
 import { Config } from "../config";
+import { Entry } from "../entry";
 
 export const command = "initiliaze [name] [lang]";
 
@@ -13,7 +13,6 @@ export const builder = (yargs) =>
 
 export const handler = function (argv) {
   let { name, lang } = argv;
-  let version = Date.now();
 
   const config = Config();
 
@@ -27,11 +26,11 @@ export const handler = function (argv) {
       .toJson()
       .write()
       .fromJson()
-      .ifError()
-      .run((self) => self.log.error(self.error))
-      .ifSuccess()
-      .run((self) =>
-        self.log.success(`Updated directory field in capsular.json`)
+      .ifError((f) => f.run((self) => self.log.error(self.error)))
+      .ifSuccess((f) =>
+        f.run((self) =>
+          self.log.success(`Updated directory field in capsular.json`)
+        )
       );
   }
 
@@ -45,28 +44,15 @@ export const handler = function (argv) {
       .toJson()
       .write()
       .fromJson()
-      .ifError()
-      .run((self) => self.log.error(self.error))
-      .ifSuccess()
-      .run((self) =>
-        self.log.success(`Updated language field in capsular.json`)
+      .ifError((f) => f.run((self) => self.log.error(self.error)))
+      .ifSuccess((f) =>
+        f.run((self) =>
+          self.log.success(`Updated language field in capsular.json`)
+        )
       );
   }
 
   const { directory, language } = config.data;
 
-  new Filer(`./${directory}`)
-    .dir()
-    .internal()
-    .join(`../stubs/migrate/init.${language}`)
-    .read()
-    .local()
-    .join(`index.${language}`)
-    .write()
-    .ifError()
-    .run((self) => self.log.error(self.error))
-    .ifSuccess()
-    .run((self) =>
-      self.log.success(`Created migration index '${self.current}'`)
-    );
+  Entry(directory, language);
 };

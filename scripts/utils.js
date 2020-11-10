@@ -44,26 +44,181 @@ class FilerContent {
   constructor(contents = "") {
     this._contents = contents;
     this._type = typeof contents === "string" ? "string" : "json";
-    this.data = new Proxy(this, {
-      get(target) {
-        if (target.json) {
-          return target._contents;
-        }
-        throw new Error(
-          `Only JSON file contents can directly manipulated through 'data' property.`
-        );
-      },
-    });
+    this._index = 0;
+    this._fromIndex = 0;
+    this._toIndex = 0;
+    this._clipboard = "";
+    this._results = "";
+    this._error = [];
+  }
+  get error() {
+    return this._error
+      .map((err) => (err instanceof Error ? err.message : err.toString()))
+      .join("\n");
+  }
+  set error(err) {
+    this._error.push(err);
+  }
+  get empty() {
+    return !this._contents;
   }
   get json() {
     return this._type === "json";
   }
-  insert() {
+  get data() {
+    try {
+      if (this.json) {
+        return this._contents;
+      }
+      throw new Error(
+        `Only JSON file contents can be directly manipulated through 'data' property.`
+      );
+    } catch (err) {
+      this.error = err;
+    }
+  }
+  set data(value) {
+    try {
+      if (this.json) {
+        this._contents = value;
+      }
+      throw new Error(
+        `Only JSON file contents can be directly manipulated through 'data' property.`
+      );
+    } catch (err) {
+      this.error = err;
+    }
+  }
+  index(value) {
+    this._index = value;
+    this._fromIndex = value;
+    this._toIndex = value;
     return this;
   }
-  replace(find, replacement = "") {
-    this._contents = this._contents.replace(find, replacement);
+  from() {
+    this._fromIndex = this._index - this._results.length;
     return this;
+  }
+  to() {
+    this._toIndex = this._index + this._results.length;
+    return this;
+  }
+  copy() {
+    try {
+      if (this.json) {
+        throw new Error(`Only string file contents can use 'copy' function.`);
+      }
+      this._clipboard = this._contents.slice(this._fromIndex, this._toIndex);
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  cut() {
+    try {
+      if (this.json) {
+        throw new Error(`Only string file contents can use 'cut' function.`);
+      }
+      this._clipboard = this._contents.slice(this._fromIndex, this._toIndex);
+      this._contents = this._contents.substring(this._fromIndex, this._toIndex);
+      this.index(this._fromIndex);
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  modify(content) {
+    try {
+      if (this.json) {
+        throw new Error(`Only string file contents can use 'modify' function.`);
+      }
+      this._clipboard = content(new FilerContent(this._clipboard)).toString();
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  paste() {
+    try {
+      if (this.json) {
+        throw new Error(`Only string file contents can use 'paste' function.`);
+      }
+
+      this.insert(this._clipboard);
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  find(search) {
+    try {
+      if (this.json) {
+        throw new Error(`Only string file contents can use 'find' function.`);
+      }
+      this._index = this._contents.indexOf(search, this._fromIndex);
+      this.results = this.index > -1 ? search : "";
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  findLast(search) {
+    try {
+      if (this.json) {
+        throw new Error(
+          `Only string file contents can use 'findLast' function.`
+        );
+      }
+      this._index = this._contents.lastIndexOf(search);
+      this.results = this.index > -1 ? search : "";
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  insert(content = null) {
+    try {
+      if (this.json) {
+        throw new Error(`Only string file contents can use 'insert' function.`);
+      }
+      if (content !== null) {
+        console.log({ start: this._contents });
+        const contentBefore = this._contents.slice(0, this._fromIndex);
+        const contentAfter = this._contents.slice(this._toIndex);
+        console.log({ content });
+        console.log({ contentBefore });
+        console.log({ contentAfter });
+        this._contents = [contentBefore, content, contentAfter].join("");
+        console.log({ result: this._contents });
+      }
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  replace(search, replacement = "") {
+    try {
+      if (this.json) {
+        throw new Error(
+          `Only string file contents can use 'replace' function.`
+        );
+      }
+      this._contents = this._contents.replace(search, replacement);
+    } catch (err) {
+      this.error = err;
+    }
+
+    return this;
+  }
+  errors() {
+    return this._error;
   }
   toString() {
     return this._contents;
@@ -73,18 +228,15 @@ class FilerContent {
 export class Filer {
   constructor(path = "./") {
     if (path instanceof Filer) {
-      const { _path, _contents } = path;
-      this._path = _path;
-      this._internalPath = _path;
-      this._contents = _contents;
+      this.merge(path);
     } else {
       this._path = path;
       this._internalPath = path;
       this._contents = "";
+      this._error = [];
+      this._skip = false;
+      this._local = true;
     }
-    this._error = [];
-    this._skip = false;
-    this._local = true;
     this.log = Logger;
   }
   pause() {
@@ -95,37 +247,38 @@ export class Filer {
     this._skip = false;
     return this;
   }
-  ifEmpty() {
+  ifEmpty(process) {
+    if (!this._contents) {
+      this.merge(process(new Filer(this)));
+    }
+    return this;
+  }
+  unlessEmpty(process) {
     if (this._contents) {
-      this.pause();
-    } else {
-      this.resume();
+      this.merge(process(new Filer(this)));
     }
     return this;
   }
-  unlessEmpty() {
-    if (this._contents) {
-      this.resume();
-    } else {
-      this.pause();
-    }
-    return this;
-  }
-  ifError() {
+  ifError(process) {
     if (this._error.length) {
-      this.resume();
-    } else {
-      this.pause();
+      this.merge(process(new Filer(this)));
     }
     return this;
   }
-  ifSuccess() {
-    if (this._error.length) {
-      this.pause();
-    } else {
-      this.resume();
+  ifSuccess(process) {
+    if (!this._error.length) {
+      this.merge(process(new Filer(this)));
     }
     return this;
+  }
+  merge(filer) {
+    const { _path, _contents, _skip, _error, _local, _internalPath } = filer;
+    this._path = _path;
+    this._internalPath = _internalPath;
+    this._contents = _contents;
+    this._error = _error;
+    this._local = _local;
+    this._skip = _skip;
   }
   local() {
     if (!this._skip) {
@@ -259,7 +412,9 @@ export class Filer {
     if (!this._skip) {
       try {
         if (typeof content === "function") {
-          this._contents = content(new FilerContent(this._contents)).toString();
+          const result = content(new FilerContent(this._contents));
+          this._error.push(...result.errors());
+          this._contents = result.toString();
         } else {
           this._contents = content;
         }

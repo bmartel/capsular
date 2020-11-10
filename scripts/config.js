@@ -5,15 +5,20 @@ export const Config = () =>
     .local()
     .read()
     .ignoreError()
-    .unlessEmpty()
-    .fromJson()
-    .ifEmpty()
-    .internal()
-    .set("./stubs/config.json")
-    .read()
-    .local()
-    .set("./capsular.json")
-    .write()
-    .run((self) => self.log.success(`Generated config file capsular.json`))
-    .fromJson()
+    .unlessEmpty((f) => f.fromJson())
+    .ifEmpty((f) =>
+      f
+        .internal()
+        .set("./stubs/config.json")
+        .read()
+        .local()
+        .set("./capsular.json")
+        .write()
+        .ifError((ff) =>
+          ff.run((self) =>
+            self.log.success(`Generated config file capsular.json`)
+          )
+        )
+        .fromJson()
+    )
     .ignoreError();

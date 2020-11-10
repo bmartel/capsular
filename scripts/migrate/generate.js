@@ -1,6 +1,7 @@
 import snake from "lodash/snakeCase";
 import { Filer, VERSION } from "../utils";
 import { Config } from "../config";
+import { Entry } from "../entry";
 
 export const command = "generate <db> [name]";
 
@@ -24,6 +25,10 @@ export const handler = function (argv) {
 
   const { directory, language } = config.data;
 
+  const fileName = `${
+    name !== version ? `${version}_${name}` : name
+  }.${language}`;
+
   new Filer(`./${directory}/${db}`)
     .dir()
     .ignoreError()
@@ -32,24 +37,54 @@ export const handler = function (argv) {
     .read()
     .contents((content) => content.replace(VERSION, version))
     .local()
-    .join(`${name !== version ? `${version}_${name}` : name}.${language}`)
+    .join(fileName)
     .write()
-    .ifError()
-    .run((self) => self.log.error(self.error))
-    .ifSuccess()
-    .run((self) => {
-      self.log.success(`Created new migration ${self.current}`);
+    .ifError((f) => f.run(() => f.log.error(f.error)))
+    .ifSuccess((f) => {
+      f.log.success(`Created new migration ${f.current}`);
+
       config
         .contents((content) => {
           content.data.version = version;
           return content;
         })
+        .ifError((ff) => ff.run(() => ff.log.error(ff.error)))
         .toJson()
         .local()
         .write()
-        .ifSuccess()
-        .run((self) =>
-          self.log.success(`Updated migration version to ${version}`)
+        .ifSuccess((ff) =>
+          ff.run(() =>
+            ff.log.success(`Updated migration version to ${version}`)
+          )
         );
+
+      Entry(directory, language)
+        .contents((content) =>
+          content
+            .find(`\nuseMigrations('${db}', {`)
+            .from()
+            .find(`\n});`)
+            .to()
+            .copy()
+            .modify((tmp) => {
+              if (tmp.empty) {
+                tmp.insert(
+                  `
+import * from m_${version} from './${db}/${fileName.replace(/\.[jt]s$/, "")}';
+
+useMigrations<m_${version}.Schema>('${db}', {
+  [m_${version}.version]: m_${version}.migration,
+});
+`
+                );
+              }
+              console.log(tmp);
+              return tmp;
+            })
+            .paste()
+        )
+        .ifSuccess((ff) => ff.local().write());
+
+      return f;
     });
 };
