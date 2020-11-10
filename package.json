@@ -1,6 +1,6 @@
 {
   "name": "capsular",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "An offline first approach to remote data",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",

@@ -61,27 +61,40 @@ export const handler = function (argv) {
       Entry(directory, language)
         .contents((content) =>
           content
-            .find(`\nuseMigrations('${db}', {`)
+            .find(new RegExp(`\nuseMigrations<?(.*)>?\\('${db}', {`))
             .from()
             .find(`\n});`)
             .to()
-            .copy()
+            .cut()
             .modify((tmp) => {
-              if (tmp.empty) {
-                tmp.insert(
-                  `
-import * from m_${version} from './${db}/${fileName.replace(/\.[jt]s$/, "")}';
+              tmp
+                .find(` {`)
+                .from()
+                .find(`\n}`)
+                .to()
+                .cut()
+                .modify((cc) => {
+                  const existing = cc
+                    .replace(/(.*)\{\n?\n?/g)
+                    .replace("\n}")
+                    .toString();
+                  cc.set(
+                    `
+import * as m_${version} from './${db}/${fileName.replace(/\.[jt]s$/, "")}';
 
 useMigrations<m_${version}.Schema>('${db}', {
+${existing}
   [m_${version}.version]: m_${version}.migration,
 });
 `
-                );
-              }
-              console.log(tmp);
+                  );
+                  return cc;
+                })
+                .paste();
+
               return tmp;
             })
-            .paste()
+            .paste(false)
         )
         .ifSuccess((ff) => ff.local().write());
 

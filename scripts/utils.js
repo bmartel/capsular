@@ -89,10 +89,22 @@ class FilerContent {
       this.error = err;
     }
   }
+  set(value) {
+    this._contents = value;
+    this.end();
+  }
   index(value) {
     this._index = value;
     this._fromIndex = value;
     this._toIndex = value;
+    return this;
+  }
+  end() {
+    this.index(this._contents.length - 1);
+    return this;
+  }
+  start() {
+    this.index(0);
     return this;
   }
   from() {
@@ -120,8 +132,12 @@ class FilerContent {
       if (this.json) {
         throw new Error(`Only string file contents can use 'cut' function.`);
       }
+
       this._clipboard = this._contents.slice(this._fromIndex, this._toIndex);
-      this._contents = this._contents.substring(this._fromIndex, this._toIndex);
+      this._contents = [
+        this._contents.slice(0, this._fromIndex),
+        this._contents.slice(this._toIndex),
+      ].join("");
       this.index(this._fromIndex);
     } catch (err) {
       this.error = err;
@@ -141,13 +157,18 @@ class FilerContent {
 
     return this;
   }
-  paste() {
+  paste(replace = true) {
     try {
       if (this.json) {
         throw new Error(`Only string file contents can use 'paste' function.`);
       }
 
-      this.insert(this._clipboard);
+      if (replace) {
+        this._contents = this._clipboard;
+        this.end();
+      } else {
+        this.insert(this._clipboard);
+      }
     } catch (err) {
       this.error = err;
     }
@@ -159,8 +180,13 @@ class FilerContent {
       if (this.json) {
         throw new Error(`Only string file contents can use 'find' function.`);
       }
-      this._index = this._contents.indexOf(search, this._fromIndex);
-      this.results = this.index > -1 ? search : "";
+      if (search instanceof RegExp) {
+        this._index = this._contents.search(search);
+        this._results = "";
+      } else {
+        this._index = this._contents.indexOf(search, this._fromIndex);
+        this._results = this._index > -1 ? search : "";
+      }
     } catch (err) {
       this.error = err;
     }
@@ -188,14 +214,9 @@ class FilerContent {
         throw new Error(`Only string file contents can use 'insert' function.`);
       }
       if (content !== null) {
-        console.log({ start: this._contents });
         const contentBefore = this._contents.slice(0, this._fromIndex);
         const contentAfter = this._contents.slice(this._toIndex);
-        console.log({ content });
-        console.log({ contentBefore });
-        console.log({ contentAfter });
         this._contents = [contentBefore, content, contentAfter].join("");
-        console.log({ result: this._contents });
       }
     } catch (err) {
       this.error = err;
