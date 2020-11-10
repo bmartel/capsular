@@ -52,7 +52,7 @@ export class Filer {
       this._internalPath = path;
       this._contents = "";
     }
-    this._error = null;
+    this._error = [];
     this._skip = false;
     this._local = true;
     this.log = Logger;
@@ -82,7 +82,7 @@ export class Filer {
     return this;
   }
   ifError() {
-    if (this._error) {
+    if (this._error.length) {
       this.resume();
     } else {
       this.pause();
@@ -90,7 +90,7 @@ export class Filer {
     return this;
   }
   ifSuccess() {
-    if (this._error) {
+    if (this._error.length) {
       this.pause();
     } else {
       this.resume();
@@ -110,10 +110,15 @@ export class Filer {
     return this;
   }
   get error() {
-    return this._error;
+    return this._error
+      .map((err) => (err instanceof Error ? err.message : err.toString()))
+      .join("\n");
+  }
+  set error(err) {
+    this._error.push(err);
   }
   ignoreError() {
-    this._error = null;
+    this._error = [];
     this._skip = false;
     return this;
   }
@@ -122,7 +127,7 @@ export class Filer {
       try {
         this.current = [...this.current.split("/"), pathStr].join("/");
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -152,7 +157,7 @@ export class Filer {
         parts.pop();
         this.current = parts.join("/");
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -163,7 +168,7 @@ export class Filer {
       try {
         this._contents = fs.readFileSync(this.toString(), "utf8");
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -174,7 +179,7 @@ export class Filer {
       try {
         fs.writeFileSync(this.toString(), this._contents);
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -192,7 +197,7 @@ export class Filer {
           );
         }
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -203,7 +208,7 @@ export class Filer {
       try {
         this._contents = JSON.stringify(this._contents, null, 2);
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -214,7 +219,7 @@ export class Filer {
       try {
         this._contents = JSON.parse(this._contents || "{}");
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -229,7 +234,7 @@ export class Filer {
           this._contents = content;
         }
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }
@@ -242,7 +247,7 @@ export class Filer {
           callable(this);
         }
       } catch (err) {
-        this._error = err;
+        this.error = err;
         this._skip = true;
       }
     }

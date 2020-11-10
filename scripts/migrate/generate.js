@@ -20,8 +20,6 @@ export const handler = function (argv) {
     name = snake(name);
   }
 
-  version = +version;
-
   const config = Config();
 
   const { directory, language } = config.data;
@@ -34,7 +32,7 @@ export const handler = function (argv) {
     .read()
     .contents((content) => content.replace(VERSION, version))
     .local()
-    .join(`${name}.${language}`)
+    .join(`${name !== version ? `${version}_${name}` : name}.${language}`)
     .write()
     .ifError()
     .run((self) => self.log.error(self.error))

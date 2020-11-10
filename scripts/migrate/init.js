@@ -1,4 +1,4 @@
-import { Filer, VERSION } from "../utils";
+import { Filer } from "../utils";
 import { Config } from "../config";
 
 export const command = "initiliaze [name] [lang]";
@@ -60,12 +60,11 @@ export const handler = function (argv) {
     .internal()
     .join(`../stubs/migrate/init.${language}`)
     .read()
-    .contents((content) => content.replace(VERSION, version))
     .local()
     .join(`index.${language}`)
     .write()
     .ifError()
-    .run((self) => self.log.error(self.error.toString()))
+    .run((self) => self.log.error(self.error))
     .ifSuccess()
     .run((self) =>
       self.log.success(`Created migration index '${self.current}'`)
