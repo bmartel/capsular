@@ -31,7 +31,6 @@
     "dist",
     "bin",
     "scripts",
-    "stubs",
     "capsular.js"
   ],
   "scripts": {

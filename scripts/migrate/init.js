@@ -1,4 +1,4 @@
-import { Filer } from "../utils";
+import { Filer, VERSION } from "../utils";
 import { Config } from "../config";
 
 export const command = "initiliaze [name] [lang]";
@@ -17,7 +17,7 @@ export const handler = function (argv) {
 
   const config = Config();
 
-  if (name !== "migrations") {
+  if (name && name !== "migrations") {
     config
       .contents((content) => {
         content.directory = name;
@@ -27,13 +27,15 @@ export const handler = function (argv) {
       .toJson()
       .write()
       .fromJson()
+      .ifError()
+      .run((self) => self.log.error(self.error))
       .ifSuccess()
       .run((self) =>
         self.log.success(`Updated directory field in capsular.json`)
       );
   }
 
-  if (lang !== "ts") {
+  if (lang && lang !== "ts") {
     config
       .contents((content) => {
         content.language = lang;
@@ -43,6 +45,8 @@ export const handler = function (argv) {
       .toJson()
       .write()
       .fromJson()
+      .ifError()
+      .run((self) => self.log.error(self.error))
       .ifSuccess()
       .run((self) =>
         self.log.success(`Updated language field in capsular.json`)
@@ -61,7 +65,7 @@ export const handler = function (argv) {
     .join(`index.${language}`)
     .write()
     .ifError()
-    .run((self) => self.log.error(self.error))
+    .run((self) => self.log.error(self.error.toString()))
     .ifSuccess()
     .run((self) =>
       self.log.success(`Created migration index '${self.current}'`)

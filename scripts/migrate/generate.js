@@ -1,8 +1,6 @@
 import snake from "lodash/snakeCase";
-import { Filer } from "../utils";
+import { Filer, VERSION } from "../utils";
 import { Config } from "../config";
-
-const VERSION = "_VERSION_";
 
 export const command = "generate <db> [name]";
 

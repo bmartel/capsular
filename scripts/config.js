@@ -3,6 +3,7 @@ import { Filer } from "./utils";
 export const Config = () =>
   new Filer("./capsular.json")
     .read()
+    .ignoreError()
     .unlessEmpty()
     .fromJson()
     .ifEmpty()
@@ -11,6 +12,5 @@ export const Config = () =>
     .read()
     .local()
     .write()
-    .fromJson()
-    .ifSuccess()
-    .run((self) => self.log.success(`Generated config file capsular.json`));
+    .run((self) => self.log.success(`Generated config file capsular.json`))
+    .fromJson();

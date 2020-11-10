@@ -12,9 +12,13 @@ export const style = {
   green: chalk.green,
 };
 
-const resolve = (fileOrDir = "./") => path.resolve(process.cwd(), fileOrDir);
+export const VERSION = "_VERSION_";
 
-const resolveInternal = (fileOrDir = "./") => path.join(__dirname, fileOrDir);
+const resolve = (fileOrDir = "./") =>
+  path.resolve(process.cwd(), fileOrDir || "./");
+
+const resolveInternal = (fileOrDir = "./") =>
+  path.resolve(__dirname, fileOrDir || "./");
 
 const emptyDir = (dir) => !fs.existsSync(dir) || fs.readdirSync(dir).length < 1;
 
@@ -22,8 +26,23 @@ const mkdir = (dir) => {
   fs.mkdirSync(dir, { recursive: true });
 };
 
+const Logger = new Proxy(
+  {},
+  {
+    get(target, prop) {
+      if (prop in style) {
+        return (msg) => console.log(style[prop](msg));
+      }
+      if (prop === "log") {
+        return console.log;
+      }
+      return target[prop];
+    },
+  }
+);
+
 export class Filer {
-  constructor(path = "./") {
+  constructor(path = "") {
     if (path instanceof Filer) {
       const { _path, _contents } = path;
       this._path = _path;
@@ -37,7 +56,7 @@ export class Filer {
     this._error = null;
     this._skip = false;
     this._local = true;
-    this.log = style;
+    this.log = Logger;
   }
   pause() {
     this._skip = true;
@@ -94,10 +113,15 @@ export class Filer {
   get error() {
     return this._error;
   }
+  ignoreError() {
+    this._error = null;
+    this._skip = false;
+    return this;
+  }
   join(pathStr) {
     if (!this._skip) {
       try {
-        this.current = path.join(this.current, pathStr);
+        this.current = `${this.current}${pathStr}`;
       } catch (err) {
         this._error = err;
         this._skip = true;
