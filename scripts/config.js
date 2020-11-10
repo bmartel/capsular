@@ -8,7 +8,7 @@ export const Config = () =>
     .fromJson()
     .ifEmpty()
     .internal()
-    .join("../stubs/config.json")
+    .set("../stubs/config.json")
     .read()
     .local()
     .write()

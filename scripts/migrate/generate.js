@@ -29,7 +29,7 @@ export const handler = function (argv) {
   new Filer(`./${directory}/${db}`)
     .dir()
     .internal()
-    .join(`../stubs/migrate/new.${language}`)
+    .join(`../../stubs/migrate/new.${language}`)
     .read()
     .contents((content) => content.replace(VERSION, version))
     .local()

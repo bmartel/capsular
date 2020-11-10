@@ -14,11 +14,10 @@ export const style = {
 
 export const VERSION = "_VERSION_";
 
-const resolve = (fileOrDir = "./") =>
-  path.resolve(process.cwd(), fileOrDir || "./");
+const resolve = (fileOrDir = "./") => path.resolve(process.cwd(), fileOrDir);
 
 const resolveInternal = (fileOrDir = "./") =>
-  path.resolve(__dirname, fileOrDir || "./");
+  path.resolve(__dirname, fileOrDir);
 
 const emptyDir = (dir) => !fs.existsSync(dir) || fs.readdirSync(dir).length < 1;
 
@@ -42,7 +41,7 @@ const Logger = new Proxy(
 );
 
 export class Filer {
-  constructor(path = "") {
+  constructor(path = "./") {
     if (path instanceof Filer) {
       const { _path, _contents } = path;
       this._path = _path;
@@ -121,7 +120,7 @@ export class Filer {
   join(pathStr) {
     if (!this._skip) {
       try {
-        this.current = `${this.current}${pathStr}`;
+        this.current = [...this.current.split("/"), pathStr].join("/");
       } catch (err) {
         this._error = err;
         this._skip = true;
@@ -141,6 +140,10 @@ export class Filer {
     } else {
       this._internalPath = value;
     }
+  }
+  set(value) {
+    this.current = value;
+    return this;
   }
   pop() {
     if (!this._skip) {
