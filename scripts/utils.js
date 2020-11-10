@@ -40,6 +40,36 @@ const Logger = new Proxy(
   }
 );
 
+class FilerContent {
+  constructor(contents = "") {
+    this._contents = contents;
+    this._type = typeof contents === "string" ? "string" : "json";
+    this.data = new Proxy(this, {
+      get(target) {
+        if (target.json) {
+          return target._contents;
+        }
+        throw new Error(
+          `Only JSON file contents can directly manipulated through 'data' property.`
+        );
+      },
+    });
+  }
+  get json() {
+    return this._type === "json";
+  }
+  insert() {
+    return this;
+  }
+  replace(find, replacement = "") {
+    this._contents = this._contents.replace(find, replacement);
+    return this;
+  }
+  toString() {
+    return this._contents;
+  }
+}
+
 export class Filer {
   constructor(path = "./") {
     if (path instanceof Filer) {
@@ -229,7 +259,7 @@ export class Filer {
     if (!this._skip) {
       try {
         if (typeof content === "function") {
-          this._contents = content(this._contents);
+          this._contents = content(new FilerContent(this._contents)).toString();
         } else {
           this._contents = content;
         }

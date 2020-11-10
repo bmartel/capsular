@@ -20,7 +20,7 @@ export const handler = function (argv) {
   if (name && name !== "migrations") {
     config
       .contents((content) => {
-        content.directory = name;
+        content.data.directory = name;
         return content;
       })
       .local()
@@ -38,7 +38,7 @@ export const handler = function (argv) {
   if (lang && lang !== "ts") {
     config
       .contents((content) => {
-        content.language = lang;
+        content.data.language = lang;
         return content;
       })
       .local()

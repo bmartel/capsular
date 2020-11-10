@@ -41,7 +41,7 @@ export const handler = function (argv) {
       self.log.success(`Created new migration ${self.current}`);
       config
         .contents((content) => {
-          content.version = version;
+          content.data.version = version;
           return content;
         })
         .toJson()
