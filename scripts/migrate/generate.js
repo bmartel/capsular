@@ -28,6 +28,7 @@ export const handler = function (argv) {
 
   new Filer(`./${directory}/${db}`)
     .dir()
+    .ignoreError()
     .internal()
     .join(`../../stubs/migrate/new.${language}`)
     .read()
