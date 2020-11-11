@@ -67,8 +67,8 @@ export const handler = function (argv) {
             .find(new RegExp(`(?:${VERSION}|\\d+);\n`))
             .to()
             .cut()
-            .modify((tmp) => tmp.set(`version = ${version};\n`))
-            .paste(false)
+            .modify((tmp) => tmp.insert(`version = ${version};\n`, true))
+            .paste()
         )
         .contents((content) =>
           content
@@ -100,17 +100,18 @@ export const handler = function (argv) {
 import * as m_${version} from './${db}/${fileName.replace(/\.[jt]s$/, "")}';
 
 useMigrations${language === "ts" ? `<m_${version}.Schema>` : ""}('${db}', {
-${existing} [m_${version}.version]: m_${version}.migration,
+${existing}
+  [m_${version}.version]: m_${version}.migration,
 });
 `
                   );
                   return cc;
                 })
-                .paste();
+                .paste(true);
 
               return tmp;
             })
-            .paste(false)
+            .paste()
             .replace(/\n\n/g, "\n")
             .replace(/\n;/g)
         )
