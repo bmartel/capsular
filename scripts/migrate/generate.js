@@ -33,7 +33,7 @@ export const handler = function (argv) {
     .dir()
     .ignoreError()
     .internal()
-    .join(`../../stubs/migrate/new.${language}`)
+    .set(`./stubs/migrate/new.${language}`)
     .read()
     .contents((content) => content.replace(VERSION, version))
     .local()
@@ -61,9 +61,26 @@ export const handler = function (argv) {
       Entry(directory, language)
         .contents((content) =>
           content
-            .find(new RegExp(`\nuseMigrations<?(.*)>?\\('${db}', {`))
+            .start()
+            .find(new RegExp("version = "))
             .from()
-            .find(`\n});`)
+            .find(new RegExp(`(?:${VERSION}|\\d+);\n`))
+            .to()
+            .cut()
+            .modify((tmp) => tmp.set(`version = ${version};\n`))
+            .paste(false)
+        )
+        .contents((content) =>
+          content
+            .start()
+            .find(new RegExp(`\nuseMigrations<?(?:.*)>?\\('${db}', {`))
+            .run((f) => {
+              if (!f._index) {
+                f.end();
+              }
+            })
+            .from()
+            .find(new RegExp(`\n}\\);`))
             .to()
             .cut()
             .modify((tmp) => {
@@ -75,16 +92,15 @@ export const handler = function (argv) {
                 .cut()
                 .modify((cc) => {
                   const existing = cc
-                    .replace(/(.*)\{\n?\n?/g)
-                    .replace("\n}")
+                    .replace(/(.*){\n?\n?/g)
+                    .replace(/\n};?/g)
                     .toString();
                   cc.set(
                     `
 import * as m_${version} from './${db}/${fileName.replace(/\.[jt]s$/, "")}';
 
 useMigrations${language === "ts" ? `<m_${version}.Schema>` : ""}('${db}', {
-${existing}
-  [m_${version}.version]: m_${version}.migration,
+${existing} [m_${version}.version]: m_${version}.migration,
 });
 `
                   );
@@ -95,7 +111,10 @@ ${existing}
               return tmp;
             })
             .paste(false)
+            .replace(/\n\n/g, "\n")
+            .replace(/\n;/g)
         )
+        .ifError((ff) => ff.run(() => ff.log.error(ff.error)))
         .ifSuccess((ff) => ff.local().write());
 
       return f;

@@ -7,7 +7,7 @@ export const Entry = (directory, language) =>
     .read()
     .ignoreError()
     .unlessEmpty((f) =>
-      f.run((self) => self.log.cmd(`Using existing migrations index`))
+      f.run(() => f.log.cmd(`Using existing migrations index`))
     )
     .ifEmpty((f) =>
       f
@@ -15,7 +15,7 @@ export const Entry = (directory, language) =>
         .dir()
         .ignoreError()
         .internal()
-        .join(`../stubs/migrate/init.${language}`)
+        .set(`./stubs/migrate/init.${language}`)
         .read()
         .local()
         .join(`index.${language}`)
@@ -23,7 +23,7 @@ export const Entry = (directory, language) =>
         .ifError((ff) => ff.run(() => ff.log.error(ff.error)))
         .ifSuccess((ff) =>
           ff.run(() =>
-            ff.log.log.success(`Created migration index '${self.current}'`)
+            ff.log.success(`Created migration index '${ff.current}'`)
           )
         )
     )

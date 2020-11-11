@@ -5,9 +5,9 @@ export interface Migration<Schema = any> {
 }
 
 export const migrations: Record<string, Record<number, Migration>> = {};
-export function useMigrations(
+export function useMigrations<Schema = any>(
   dbname: string,
-  _migrations: Record<number, Migration> = {}
+  _migrations: Record<number, Migration<Schema>> = {}
 ) {
   migrations[dbname] = _migrations;
 }

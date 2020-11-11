@@ -89,9 +89,20 @@ class FilerContent {
       this.error = err;
     }
   }
+  run(callable) {
+    try {
+      if (typeof callable === "function") {
+        callable(this);
+      }
+    } catch (err) {
+      this.error = err;
+    }
+    return this;
+  }
   set(value) {
     this._contents = value;
     this.end();
+    return this;
   }
   index(value) {
     this._index = value;
@@ -108,11 +119,11 @@ class FilerContent {
     return this;
   }
   from() {
-    this._fromIndex = this._index - this._results.length;
+    this._fromIndex = this._index;
     return this;
   }
   to() {
-    this._toIndex = this._index + this._results.length;
+    this._toIndex = this._index + (this._results.length - 1);
     return this;
   }
   copy() {
@@ -157,13 +168,13 @@ class FilerContent {
 
     return this;
   }
-  paste(replace = true) {
+  paste(overwrite = true) {
     try {
       if (this.json) {
         throw new Error(`Only string file contents can use 'paste' function.`);
       }
 
-      if (replace) {
+      if (overwrite) {
         this._contents = this._clipboard;
         this.end();
       } else {
@@ -180,12 +191,12 @@ class FilerContent {
       if (this.json) {
         throw new Error(`Only string file contents can use 'find' function.`);
       }
-      if (search instanceof RegExp) {
-        this._index = this._contents.search(search);
-        this._results = "";
+      const result = this._contents.match(search);
+      if (result) {
+        this._index = result.index;
+        this._results = result.join("");
       } else {
-        this._index = this._contents.indexOf(search, this._fromIndex);
-        this._results = this._index > -1 ? search : "";
+        this._results = "";
       }
     } catch (err) {
       this.error = err;

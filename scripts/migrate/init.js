@@ -26,12 +26,11 @@ export const handler = function (argv) {
       .toJson()
       .write()
       .fromJson()
-      .ifError((f) => f.run((self) => self.log.error(self.error)))
+      .ifError((f) => f.run(() => f.log.error(f.error)))
       .ifSuccess((f) =>
-        f.run((self) =>
-          self.log.success(`Updated directory field in capsular.json`)
-        )
-      );
+        f.run(() => f.log.success(`Updated directory field in capsular.json`))
+      )
+      .ignoreError();
   }
 
   if (lang && lang !== "ts") {
@@ -44,12 +43,11 @@ export const handler = function (argv) {
       .toJson()
       .write()
       .fromJson()
-      .ifError((f) => f.run((self) => self.log.error(self.error)))
+      .ifError((f) => f.run(() => f.log.error(f.error)))
       .ifSuccess((f) =>
-        f.run((self) =>
-          self.log.success(`Updated language field in capsular.json`)
-        )
-      );
+        f.run(() => f.log.success(`Updated language field in capsular.json`))
+      )
+      .ignoreError();
   }
 
   const { directory, language } = config.data;
