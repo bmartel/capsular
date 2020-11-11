@@ -15,9 +15,9 @@ export const style = {
 export const VERSION = "_VERSION_";
 
 const resolve = (fileOrDir = "./") => path.resolve(process.cwd(), fileOrDir);
+const binPath = path.resolve(__dirname, "../bin");
 
-const resolveInternal = (fileOrDir = "./") =>
-  path.resolve(__dirname, fileOrDir);
+const resolveInternal = (fileOrDir = "./") => path.resolve(binPath, fileOrDir);
 
 const emptyDir = (dir) => !fs.existsSync(dir) || fs.readdirSync(dir).length < 1;
 
@@ -40,7 +40,7 @@ const Logger = new Proxy(
   }
 );
 
-class FilerContent {
+export class FilerContent {
   constructor(contents = "") {
     this._contents = contents;
     this._type = typeof contents === "string" ? "string" : "json";
@@ -123,7 +123,7 @@ class FilerContent {
     return this;
   }
   to() {
-    this._toIndex = this._index + (this._results.length - 1);
+    this._toIndex = this._index + this._results.length;
     return this;
   }
   copy() {
@@ -168,18 +168,13 @@ class FilerContent {
 
     return this;
   }
-  paste(overwrite = true) {
+  paste(overwrite = false) {
     try {
       if (this.json) {
         throw new Error(`Only string file contents can use 'paste' function.`);
       }
 
-      if (overwrite) {
-        this._contents = this._clipboard;
-        this.end();
-      } else {
-        this.insert(this._clipboard);
-      }
+      this.insert(this._clipboard, overwrite);
     } catch (err) {
       this.error = err;
     }
@@ -219,15 +214,28 @@ class FilerContent {
 
     return this;
   }
-  insert(content = null) {
+  insert(content = null, overwrite = false) {
     try {
       if (this.json) {
         throw new Error(`Only string file contents can use 'insert' function.`);
       }
       if (content !== null) {
-        const contentBefore = this._contents.slice(0, this._fromIndex);
-        const contentAfter = this._contents.slice(this._toIndex);
-        this._contents = [contentBefore, content, contentAfter].join("");
+        if (overwrite) {
+          this._contents = content;
+          //re-select all
+          this.end();
+          this._fromIndex = 0;
+        } else {
+          // set the paste as results
+          this._results = content;
+          const contentBefore = this._contents.slice(0, this._fromIndex);
+          const contentAfter = this._contents.slice(this._toIndex);
+          // recalculate selection to the pasted portion
+          this.index(this._fromIndex);
+          this.to();
+          // set the contents in full
+          this._contents = [contentBefore, content, contentAfter].join("");
+        }
       }
     } catch (err) {
       this.error = err;
@@ -393,6 +401,27 @@ export class Filer {
     if (!this._skip) {
       try {
         fs.writeFileSync(this.toString(), this._contents);
+      } catch (err) {
+        this.error = err;
+        this._skip = true;
+      }
+    }
+    return this;
+  }
+  delete() {
+    if (!this._skip) {
+      try {
+        const path = this.toString();
+        if (!this.local) {
+          throw new Error(
+            `Cannot delete internal paths, '${path}' not removed.`
+          );
+        }
+        if (isDir(path)) {
+          fs.rmdirSync(path, { recursive: true });
+        } else {
+          fs.rmSync(path);
+        }
       } catch (err) {
         this.error = err;
         this._skip = true;

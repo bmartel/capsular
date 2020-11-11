@@ -52,5 +52,10 @@ export const handler = function (argv) {
 
   const { directory, language } = config.data;
 
-  Entry(directory, language);
+  const entry = Entry(directory, language);
+
+  return {
+    config,
+    entry,
+  };
 };

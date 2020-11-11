@@ -15,10 +15,7 @@ export const Config = () =>
         .set("./capsular.json")
         .write()
         .ifError((ff) =>
-          ff.run((self) =>
-            self.log.success(`Generated config file capsular.json`)
-          )
+          ff.run(() => ff.log.success(`Generated config file capsular.json`))
         )
         .fromJson()
-    )
-    .ignoreError();
+    );
