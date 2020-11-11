@@ -37,7 +37,7 @@
     "build": "rollup -c",
     "transpile:scripts": "babel scripts -d scriptsbin",
     "bundle:scripts": "ncc build scriptsbin/index.js -m -o bin",
-    "build:scripts": "yarn transpile:scripts && yarn bundle:scripts",
+    "build:scripts": "yarn transpile:scripts && yarn bundle:scripts && cp -R ./stubs ./bin/stubs",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava",
     "test:scripts": "ava --config scripts-tests.config.js"
   },

@@ -13,8 +13,8 @@ test.before((t) => {
 });
 
 test.after((t) => {
-  t.context.handlerReturn.config.delete();
-  t.context.handlerReturn.entry.delete();
+  t.context.handlerReturn.config.rm();
+  t.context.handlerReturn.entry.rm();
 });
 
 test("init default creates a capsular.json file and migrations directory in the root directory for typescript projects", (t) => {

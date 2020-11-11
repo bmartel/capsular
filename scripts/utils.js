@@ -20,6 +20,7 @@ const binPath = path.resolve(__dirname, "../bin");
 const resolveInternal = (fileOrDir = "./") => path.resolve(binPath, fileOrDir);
 
 const emptyDir = (dir) => !fs.existsSync(dir) || fs.readdirSync(dir).length < 1;
+const isDir = (path) => fs.statSync(path).isDirectory();
 
 const mkdir = (dir) => {
   fs.mkdirSync(dir, { recursive: true });
@@ -408,7 +409,7 @@ export class Filer {
     }
     return this;
   }
-  delete() {
+  rm() {
     if (!this._skip) {
       try {
         const path = this.toString();
@@ -420,7 +421,7 @@ export class Filer {
         if (isDir(path)) {
           fs.rmdirSync(path, { recursive: true });
         } else {
-          fs.rmSync(path);
+          fs.unlinkSync(path);
         }
       } catch (err) {
         this.error = err;
