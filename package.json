@@ -1,6 +1,6 @@
 {
   "name": "capsular",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "An offline first approach to remote data",
   "module": "dist/index.mjs",
   "main": "dist/index.cjs",
@@ -37,7 +37,7 @@
     "build": "rollup -c",
     "transpile:scripts": "babel scripts -d scriptsbin",
     "bundle:scripts": "ncc build scriptsbin/index.js -m -o bin",
-    "build:scripts": "yarn transpile:scripts && yarn bundle:scripts && cp -R ./stubs ./bin/stubs",
+    "build:scripts": "yarn transpile:scripts && yarn bundle:scripts && cp -R ./stubs ./bin/",
     "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava",
     "test:scripts": "ava --config scripts-tests.config.js"
   },
