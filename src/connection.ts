@@ -8,16 +8,7 @@ export async function open<Schema = any>(
   upgrade: Migration = migrate
 ) {
   const db = await openDB<Schema>(name, version, { upgrade });
-  const transaction = bindTransactions<Schema>(db);
+  const tx = bindTransactions<Schema>(db);
 
-  return new Proxy(db, {
-    get(target, key) {
-      switch (key) {
-        case "transaction":
-          return transaction;
-        default:
-          return target[key];
-      }
-    },
-  });
+  return { db, tx };
 }

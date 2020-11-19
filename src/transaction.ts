@@ -11,22 +11,24 @@ export interface TransactionOperation<Schema, Result = any> {
 }
 
 export interface TransactionInstance<Schema> {
-  name: string;
+  name: string | Array<string>;
   type?: TransactionType;
   run: (transaction: TransactionOperation<Schema>) => Promise<void>;
 }
 
 export function bindTransactions<Schema = any>(db: IDBPDatabase<Schema>) {
   return (
-    name: string,
+    name: string | Array<string>,
     type?: TransactionType
   ): TransactionInstance<Schema> => {
-    const tx = db.transaction([name] as StoreNames<Schema>[], type);
-
     return {
       name,
       type,
       async run(transaction) {
+        const tx = db.transaction(
+          (Array.isArray(name) ? name : [name]) as StoreNames<Schema>[],
+          type
+        );
         await Promise.all([
           transaction(tx as IDBPTransaction<Schema>),
           tx.done,
