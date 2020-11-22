@@ -1,20 +1,5 @@
 import { IDBPDatabase, IDBPTransaction, StoreNames } from "idb";
-
-export enum TransactionType {
-  Read = "readonly",
-  ReadWrite = "readwrite",
-  Version = "versionchange",
-}
-
-export interface TransactionOperation<Schema, Result = any> {
-  (tx: IDBPTransaction<Schema>): Promise<Result>;
-}
-
-export interface TransactionInstance<Schema> {
-  name: string | Array<string>;
-  type?: TransactionType;
-  run: (transaction: TransactionOperation<Schema>) => Promise<void>;
-}
+import { TransactionInstance, TransactionType } from "./types";
 
 export function bindTransactions<Schema = any>(db: IDBPDatabase<Schema>) {
   return (
@@ -24,7 +9,7 @@ export function bindTransactions<Schema = any>(db: IDBPDatabase<Schema>) {
     return {
       name,
       type,
-      async run(transaction) {
+      async exec(transaction) {
         const tx = db.transaction(
           (Array.isArray(name) ? name : [name]) as StoreNames<Schema>[],
           type
