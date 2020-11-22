@@ -2,3 +2,5 @@ node_modules
 dist
 bin
 scriptsbin
+worker.js
+src/*.d.ts

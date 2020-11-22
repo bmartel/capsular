@@ -31,7 +31,8 @@
     "dist",
     "bin",
     "scripts",
-    "capsular.js"
+    "capsular.js",
+    "worker.js"
   ],
   "scripts": {
     "build": "rollup -c",

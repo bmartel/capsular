@@ -28,29 +28,26 @@ const build = (output = {}) => ({
   ],
 });
 
-const scripts = {
-  input: "scripts/index.js",
-  output: {
-    file: pkg.binEntry,
-    format: "cjs",
-  },
+const workerBuild = (output = {}) => ({
+  input: "src/worker.ts",
+  output,
   plugins: [
     resolve({
       browser: true,
-      node: true,
     }),
     commonjs({
       include: /node_modules/,
     }),
-    json(),
-    babel({ babelHelpers: "bundled" }),
+    typescript({
+      typescript: ts,
+    }),
     terser({
       output: {
         comments: false,
       },
     }),
   ],
-};
+});
 
 export default [
   build({
@@ -65,5 +62,9 @@ export default [
   build({
     format: "es",
     file: pkg.module,
+  }),
+  workerBuild({
+    format: "umd",
+    file: "worker.js",
   }),
 ];
