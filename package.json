@@ -35,12 +35,14 @@
     "worker.js"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build:src": "rollup -c",
     "transpile:scripts": "babel scripts -d scriptsbin",
     "bundle:scripts": "ncc build scriptsbin/index.js -m -o bin",
     "build:scripts": "yarn transpile:scripts && yarn bundle:scripts && cp -R ./stubs ./bin/",
-    "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava",
-    "test:scripts": "ava --config scripts-tests.config.js"
+    "test:src": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2015\"}' ava",
+    "test:scripts": "ava --config scripts-tests.config.js",
+    "build": "yarn build:src && yarn build:scripts",
+    "test": "yarn test:src && yarn test:scripts"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.1",
