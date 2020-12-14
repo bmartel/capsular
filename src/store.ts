@@ -203,18 +203,25 @@ export class Store<Schema = any> {
     input: RequestInfo,
     init?: CachedRequestInit
   ) {
-    const { cacheFor = 0 } = init || {};
+    const { cacheFor = 0, background = false } = init || {};
     const queryStore = await this.createFetch(info);
     const results = await queryStore();
 
     // if there was a result that did not cache expire return it
     if (results && Date.now() - cacheFor * 1000 <= results.fetchedAt) {
+      if (background) {
+        this.notify(info.key.id, results);
+        return;
+      }
       return results;
     }
 
     // otherwise get it in a worker
     this.backgroundFetch(info, input, init);
 
+    if (background) {
+      return;
+    }
     // waitFor results to be fetched
     await this.waitFor(info.key.id);
 

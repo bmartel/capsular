@@ -30,6 +30,7 @@ export type CacheKey = Array<string | number>;
 export type CachedRequestInit = RequestInit & {
   cacheFor?: number;
   refetchInterval?: number;
+  background?: boolean;
 };
 
 export interface StoreConnection {
