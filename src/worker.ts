@@ -3,17 +3,28 @@ import { CachedRequestInit, StoreRecord } from "./types";
 
 const background = new Map();
 
+const different = (source: any, target: any) =>
+  (!source && !!target) ||
+  typeof source !== typeof target ||
+  source !== target ||
+  JSON.stringify(source) !== JSON.stringify(target);
+
 async function store(info: StoreRecord, data: any) {
   const { db } = await open(info.store.db, info.store.version);
+  let updated = false;
   try {
     const id = info.key.id;
-    await db.put(
-      info.collection || "offline",
-      { id, data, fetchedAt: Date.now() },
-      id
-    );
+    const collection = info.collection || "offline";
+
+    const existing = db.get(collection, id);
+
+    if (different(existing, data)) {
+      await db.put(collection, { id, data, fetchedAt: Date.now() }, id);
+      updated = true;
+    }
   } finally {
     db.close();
+    return updated;
   }
 }
 
@@ -27,7 +38,7 @@ async function remoteFetch(
     throw res.body;
   }
   const data = await res.json();
-  await store(info, data);
+  return await store(info, data);
 }
 
 async function processFetch(
@@ -36,16 +47,32 @@ async function processFetch(
   init?: CachedRequestInit
 ) {
   const id = info.key.id;
-  background.set(id, { info, input, init, processedAt: Infinity });
+  const existing = background.get(id);
+  background.set(id, {
+    info,
+    input,
+    init,
+    processedAt: Infinity,
+    updatedAt: existing && existing.updatedAt,
+  });
+  let updated = false;
   try {
     if (info && input) {
-      await remoteFetch(info, input, init);
+      updated = await remoteFetch(info, input, init);
     }
-    (postMessage as any)({ id, success: true });
+    (postMessage as any)({ id, success: true, updated });
   } catch (err) {
     (postMessage as any)({ id, error: err });
   } finally {
-    background.set(id, { info, input, init, processedAt: Date.now() });
+    const now = Date.now();
+    background.set(id, {
+      info,
+      input,
+      init,
+      processedAt: now,
+      updatedAt:
+        updated || !existing ? now : (existing && existing.updatedAt) || now,
+    });
   }
 }
 
@@ -56,7 +83,7 @@ onmessage = async (ev: MessageEvent) => {
 
   // unsub or sub and fetch
   switch (init.refetchInterval) {
-    case 0:
+    case -1:
       background.delete(id);
       break;
     default:

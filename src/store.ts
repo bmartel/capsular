@@ -111,8 +111,12 @@ export class Store<Schema = any> {
   }
 
   handleWorker(ev: MessageEvent) {
-    const { id, error, success } = ev.data;
-    this.notify(id, success, error);
+    const { error, success, ...data } = ev.data;
+    if (success) {
+      this.notify(data.id, data);
+    } else {
+      this.notify(data.id, null, error);
+    }
   }
 
   closeWorker() {
@@ -222,6 +226,7 @@ export class Store<Schema = any> {
     if (background) {
       return;
     }
+    // TODO: fix this so it doesnt clear existing persistent subscriptions
     // waitFor results to be fetched
     await this.waitFor(info.key.id);
 
